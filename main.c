@@ -74,7 +74,7 @@ static void steps_stack_print(SolutionStepStack* stack)
 
 int main()
 	{
-	int numbers[NUM_COUNT], target;
+	int numbers[NUM_COUNT], target, result;
 	SolutionStepStack steps_stack;
 
 	srand(time(NULL));
@@ -91,6 +91,12 @@ int main()
 	printf("Target: %d\n\n", target);
 
 	resolve_cifras(numbers, target, &steps_stack);
+	
+	result = steps_stack_result(&steps_stack);
+	printf("Result obtained: %d", result);
+	if (result == target)
+		printf(" (EXACT!)");
+	printf("\n\n");
 	
 	steps_stack_print(&steps_stack);
 	}
