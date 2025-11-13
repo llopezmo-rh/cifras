@@ -6,7 +6,7 @@
 #define NUM_COUNT 6
 // MAX_SOLUTION_STEPS must be at least 4 because the internal function 
 // build_candidates_stack uses it
-#if NUM_COUNT >= 5
+#if NUM_COUNT > 4
 	#define MAX_SOLUTION_STEPS (NUM_COUNT - 1)
 #else
 	#define MAX_SOLUTION_STEPS 4
