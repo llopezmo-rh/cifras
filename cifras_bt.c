@@ -14,21 +14,42 @@ static int step_copy(SolutionStep* target, const SolutionStep* source)
 		fprintf(stderr, "Error on step_copy: solution steps cannot be NULL\n");
 		return -1;
 		}
-		
+
+	if (source->result <= 0)
+		{
+		fprintf(stderr, "Error on step_copy: \"result\" field is %d", source->result);
+		fprintf(stderr, ", which is not strictly positive\n");
+		return -1;
+		}	
 	target->result = source->result;
-	assert(target->result >= 0);
-
+	
+	if (source->a <= 0)
+		{
+		fprintf(stderr, "Error on step_copy: \"a\" field is %d", source->a);
+		fprintf(stderr, ", which is not strictly positive\n");
+		return -1;
+		}
 	target->a = source->a;
-	assert(target->a >= 0);
 
+	if (source->b <= 0)
+		{
+		fprintf(stderr, "Error on step_copy: \"b\" field is %d", source->b);
+		fprintf(stderr, ", which is not strictly positive\n");
+		return -1;
+		}
 	target->b = source->b;
-	assert(target->b >= 0);
 
+	if (source->op != '+' && 
+		source->op != '-' && 
+		source->op != '*' && 
+		source->op != '/')
+		{
+		fprintf(stderr, "Error on step_copy: \"op\" field is \"%c\". ",
+			source->op);
+		fprintf(stderr, "Not valid\n");
+		return -1;
+		}
 	target->op = source->op;
-	assert(target->op == '+' ||
-		target->op == '-' ||
-		target->op == '*' ||
-		target->op == '/');
 	
 	return 0;
 	}	
