@@ -292,7 +292,6 @@ static void cifras_bt(const int* numbers, int numbers_count,
 	const SolutionStepStack* current_steps, SolutionStepStack* best_steps) 
 	{	
 	int ok;
-	int current_diff, best_diff;
 	int i, j;
 	SolutionStep candidate;
 	SolutionStepStack candidate_steps, next_steps;
