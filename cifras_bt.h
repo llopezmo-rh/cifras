@@ -36,6 +36,6 @@ int steps_stack_pop(SolutionStepStack* stack, SolutionStep* step);
 int steps_stack_count(const SolutionStepStack* stack);
 int steps_stack_result(const SolutionStepStack* stack);
 int steps_stack_copy(SolutionStepStack* target, const SolutionStepStack* source);
-void resolve_cifras(const int* numbers, int target, SolutionStepStack* best_steps);
+int resolve_cifras(const int* numbers, int target, SolutionStepStack* best_steps);
 
 #endif

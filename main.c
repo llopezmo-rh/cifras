@@ -267,7 +267,9 @@ int main()
 	numbers_print(numbers);
 	printf("Target: %d\n\n", target);
 
-	resolve_cifras(numbers, target, &steps_stack);
+	ok = resolve_cifras(numbers, target, &steps_stack);
+	if (ok != 0)
+		return 1;
 	
 	result = steps_stack_result(&steps_stack);
 	printf("Result obtained: %d", result);

@@ -306,7 +306,7 @@ static int build_candidates_stack(SolutionStepStack* stack,
 	return 0;
 	}
 
-static void cifras_bt(const int* numbers, int numbers_count,
+static int cifras_bt(const int* numbers, int numbers_count,
 	int target,
 	const SolutionStepStack* current_steps, SolutionStepStack* best_steps) 
 	{	
@@ -321,13 +321,13 @@ static void cifras_bt(const int* numbers, int numbers_count,
 	if (steps_stack_compare(current_steps, best_steps, target) == -1)
 		{
 		ok = steps_stack_copy(best_steps, current_steps);
-		assert(ok == 0);
+		if (ok != 0) return -1;
 		}
 
 	// Base case: only 1 number pending, therefore no more combinations are possible
 	assert(numbers_count > 0);
 	if (numbers_count == 1)
-		return;
+		return 0;
 
 	// From here onwards, recursive case
 	for (int i = 0; i < numbers_count; i++) 
@@ -337,7 +337,7 @@ static void cifras_bt(const int* numbers, int numbers_count,
 			// Stack candidate steps
 			// Operands: numbers[i] and numbers[j]
 			ok = build_candidates_stack(&candidate_steps, numbers[i], numbers[j]);
-			assert(ok == 0);
+			if (ok != 0) return -1;
 			
 			// Pop candidates one by one and make a recursive call with
 			// everyone of them
@@ -345,42 +345,45 @@ static void cifras_bt(const int* numbers, int numbers_count,
 				{
 				// Initialize next_steps with a copy of current_steps
 				ok = steps_stack_copy(&next_steps, current_steps);
-				assert(ok == 0);
+				if (ok != 0) return -1;
 
 				// Push next candidate
 				ok = steps_stack_pop(&candidate_steps, &candidate);
-				assert(ok == 0);
+				if (ok != 0) return -1;
 				ok = steps_stack_push(&next_steps, &candidate);
-				assert(ok == 0);
+				if (ok != 0) return -1;
 				
 				// Create numbers array for the recursive call
-				build_next_numbers(next_numbers, numbers, i, j, candidate.result);
+				ok = build_next_numbers(next_numbers, numbers, i, j, candidate.result);
+				if (ok != 0) return -1;
 				
 				// Recursive call
-				cifras_bt(next_numbers, numbers_count - 1, target,
+				ok = cifras_bt(next_numbers, numbers_count - 1, target,
 					&next_steps, best_steps);
+				if (ok != 0) return -1;
 				
 				// Restore next_steps. More than one candidate step must not
 				// be pushed for the same recursive call
 				ok = steps_stack_pop(&next_steps, NULL);
-				assert(ok == 0);
+				if (ok != 0) return -1;
 				}
 			}
 		}
+	return 0;
 	}
 
 // Wrapper
-void resolve_cifras(const int* numbers, int target, SolutionStepStack* best_steps)
+int resolve_cifras(const int* numbers, int target, SolutionStepStack* best_steps)
 	{
 	int ok;
 	SolutionStepStack current_steps;
 	
 	ok = steps_stack_init(&current_steps);
-	assert(ok == 0);
+	if (ok != 0) return -1;
 	ok = steps_stack_init(best_steps);
-	assert(ok == 0);
+	if (ok != 0) return -1;
 	
-	cifras_bt(numbers, NUM_COUNT, target, &current_steps, best_steps);
+	return cifras_bt(numbers, NUM_COUNT, target, &current_steps, best_steps);
 	}
 
 
