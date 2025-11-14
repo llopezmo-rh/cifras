@@ -338,15 +338,15 @@ static int cifras_bt(const int* numbers, int numbers_count,
 			// Operands: numbers[i] and numbers[j]
 			ok = build_candidates_stack(&candidate_steps, numbers[i], numbers[j]);
 			if (ok != 0) return -1;
+				
+			// Initialize next_steps with a copy of current_steps
+			ok = steps_stack_copy(&next_steps, current_steps);
+			if (ok != 0) return -1;
 			
 			// Pop candidates one by one and make a recursive call with
 			// everyone of them
 			while (steps_stack_is_empty(&candidate_steps) == false)
 				{
-				// Initialize next_steps with a copy of current_steps
-				ok = steps_stack_copy(&next_steps, current_steps);
-				if (ok != 0) return -1;
-
 				// Push next candidate
 				ok = steps_stack_pop(&candidate_steps, &candidate);
 				if (ok != 0) return -1;
