@@ -67,12 +67,10 @@ int steps_stack_init(SolutionStepStack* stack)
 	return 0;
 	}
 	
-bool steps_stack_is_empty(const SolutionStepStack* stack)
-	{
-	assert(stack != NULL);
-	return stack->count == 0;
-	}
-	
+// Function defined in cifras_bt.h:
+// static inline bool steps_stack_is_empty(const SolutionStepStack* stack)
+
+
 int steps_stack_push(SolutionStepStack* stack, const SolutionStep* step)
 	{
 	if (stack == NULL)

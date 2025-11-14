@@ -27,7 +27,10 @@ typedef struct
 	} SolutionStepStack;
 
 int steps_stack_init(SolutionStepStack* stack);
-bool steps_stack_is_empty(const SolutionStepStack* stack);
+static inline bool steps_stack_is_empty(const SolutionStepStack* stack) 
+	{
+	return stack->count == 0;
+	}
 int steps_stack_push(SolutionStepStack* stack, const SolutionStep* step);
 int steps_stack_pop(SolutionStepStack* stack, SolutionStep* step);
 int steps_stack_count(const SolutionStepStack* stack);
