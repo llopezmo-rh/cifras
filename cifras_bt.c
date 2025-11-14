@@ -120,11 +120,16 @@ int steps_stack_pop(SolutionStepStack* stack, SolutionStep* step)
 		return -1;
 		}
 	
+	stack->count--;
+	
 	if (step != NULL)
 		{
-		ok = step_copy(step, &(stack->steps[--(stack->count)]));
+		ok = step_copy(step, &(stack->steps[stack->count]));
 		if (ok != 0)
+			{
 			fprintf(stderr, "Error on steps_stack_pop: step_copy has failed\n");
+			return -1;
+			}
 		}
 	
 	return 0;
