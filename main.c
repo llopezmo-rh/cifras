@@ -20,7 +20,7 @@ static const size_t RANDOM_BIG_NUMBERS_COUNT = sizeof(RANDOM_BIG_NUMBERS) / size
 static int random_natural(int min_val, int max_val) 
 	{
 	if (min_val > max_val) {
-		fprintf(stderr, "Error: min_val cannot be greater than max_val\n");
+		fprintf(stderr, "Error in random_natural: min_val cannot be greater than max_val\n");
 		// Returning min_val as a fallback
 		return -1;
 	}
@@ -91,7 +91,7 @@ static int validate_string(const char* input, const char* regex_pattern)
 	if (ok != 0)
 		{
 		regerror(ok, &regex, buffer, sizeof(buffer));
-		fprintf(stderr, "Regex compile error: %s\n", buffer);
+		fprintf(stderr, "Error in validate_string: regex compile error: %s\n", buffer);
 		return -1;
 		}
 	
@@ -102,8 +102,7 @@ static int validate_string(const char* input, const char* regex_pattern)
 		ok = 1;
 	else if (ok != 0)
 		{
-		fprintf(stderr, "Error in function validate_numbers: ");
-		fprintf(stderr, "regexec has failed\n");
+		fprintf(stderr, "Error in validate_string: regexec has failed\n");
 		ok = -1;
 		}
 	
@@ -131,14 +130,15 @@ static int parse_numbers(int* numbers, char* input)
 		numbers[i] = atoi(token);
 		if (numbers[i] <= 0)
 			{
-			fprintf(stderr, "Error: ");
+			fprintf(stderr, "Error in parse_numbers: ");
 			fprintf(stderr, "Number %d not correctly parsed or not strictly positive\n",
 				numbers[i]);
 			return -1;
 			}
 		if (numbers[i] < MIN_NUMBER || numbers[i] > MAX_NUMBER)
 			{
-			fprintf(stderr, "Error: number %d is not between %d and %d\n",
+			fprintf(stderr, "Error in parse_numbers: ");
+			fprintf(stderr, "number %d is not between %d and %d\n",
 				numbers[i], MIN_NUMBER, MAX_NUMBER);
 			return -1;
 			}
@@ -149,7 +149,7 @@ static int parse_numbers(int* numbers, char* input)
 	
 	if (i != NUM_COUNT)
 		{
-		fprintf(stderr, "Error: %d numbers parsed instead of %d\n",
+		fprintf(stderr, "Error in parse_numbers: %d numbers parsed instead of %d\n",
 			i, NUM_COUNT - 1);
 		return -1;
 		}
@@ -171,12 +171,12 @@ static int parse_target(int* target, char* input)
 	*target = atoi(token);
 	if (strtok(NULL, " ") != NULL)
 		{
-		fprintf(stderr, "Error: target must be a single number\n");
+		fprintf(stderr, "Error in parse_target: target must be a single number\n");
 		return -1;
 		}
 	if (*target < MIN_TARGET || *target > MAX_TARGET)
 		{
-		fprintf(stderr, "Error: target %d is not between %d and %d\n",
+		fprintf(stderr, "Error in parse_target: target %d is not between %d and %d\n",
 			target, MIN_TARGET, MAX_TARGET);
 		return -1;
 		}
@@ -194,7 +194,7 @@ int main()
 	printf("Introduce numbers (enter to be randomly generated)\n");
 	if (fgets(buffer, sizeof(buffer), stdin) == NULL)
 		{
-		fprintf(stderr, "Read error\n");
+		fprintf(stderr, "Read error in fgets\n");
 		return 1;
 		}
 	
@@ -224,7 +224,7 @@ int main()
 			}
 		else if (ok == -1)
 			{
-			fprintf(stderr, "Validation error\n");
+			fprintf(stderr, "Validation error in validate_string\n");
 			return 1;
 			}
 		
@@ -234,7 +234,7 @@ int main()
 		ok = parse_numbers(numbers, buffer);
 		if (ok != 0)
 			{
-			fprintf(stderr, "Error parsing numbers\n");
+			fprintf(stderr, "Error in parse_numbers\n");
 			return 1;
 			}
 		
@@ -252,10 +252,7 @@ int main()
 			return 1;
 			}
 		else if (ok == -1)
-               {
-               fprintf(stderr, "Validation error\n");
-               return 1;
-               }
+			return 1;
 
 		// Parse target number
 		// This includes checking that the target is between
@@ -263,10 +260,7 @@ int main()
 		// PENDING: CREATE FUNCTION
 		parse_target(&target, buffer);
 		if (ok != 0)
-               {
-               fprintf(stderr, "Error parsing target\n");
-               return 1;
-               }
+			return 1;
 		}
 		
 	printf("Numbers: ");
