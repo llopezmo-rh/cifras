@@ -85,7 +85,7 @@ int steps_stack_push(SolutionStepStack* stack, const SolutionStep* step)
 		return -1;
 		}
 		
-	if (stack->count < 0 || stack->count > MAX_SOLUTION_STEPS)
+	if (stack->count < 0 || stack->count >= MAX_SOLUTION_STEPS)
 		{
 		fprintf(stderr, "Error on steps_stack_push: stack count is %d\n",
 			stack->count);
