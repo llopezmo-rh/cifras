@@ -76,6 +76,19 @@ static void steps_stack_print(SolutionStepStack* stack)
 		}
 	}
 
+static int get_user_input(char* user_input, const char* prompt)
+	{
+	printf("%s", prompt);
+	
+	if (fgets(user_input, sizeof(user_input), stdin) == NULL)
+		{
+		fprintf(stderr, "get_user_input: Read error in fgets\n");
+		return 1;
+		}
+	
+	return 0;
+	}
+	
 // Return values:
 // 0: regex validated
 // 1: regex not validated
@@ -112,19 +125,43 @@ static int validate_string(const char* input, const char* regex_pattern)
 	// Return value depending on the previous regex validation
 	return ok;
 	}
-
-// input will be modified by the function strtok.
+	
+// numbers_input will be modified by the function strtok.
 // In case it is wanted to reuse the string there, make a previous copy
-static int parse_numbers(int* numbers, char* input)
+static int parse_numbers(int* numbers, char* numbers_input)
 	{
 	char* token;
+	int ok;
 	int i = 0;
-
+	char regex_pattern[128];
+	
 	// Remove final new-line character
-	input[strcspn(input, "\n")] = 0;
+	numbers_input[strcspn(numbers_input, "\n")] = 0;
+
+	// Validate numbers string
+	// Generate pattern dynamically taking into account the constant NUM_COUNT
+	// Alternative regex to allow several commas (besides spaces)
+	// between numbers:
+	// ^[[:space:]]*(0*[1-9][0-9]*([[:space:]]|,)+){%d}0*[1-9][0-9]*[[:space:]]*$
+	snprintf(regex_pattern, sizeof(regex_pattern),
+		"^[[:space:]]*(0*[1-9][0-9]*([[:space:]]+|([[:space:]]*,[[:space:]]*))){%d}0*[1-9][0-9]*[[:space:]]*$",
+		NUM_COUNT - 1);
+	ok = validate_string(numbers_input, regex_pattern);
+	if (ok == 1)
+		{
+		fprintf(stderr, "Error in parse_numbers: input not validated. ");
+		fprintf(stderr, "Introduce %d numbers separated with spaces or commas\n",
+			NUM_COUNT);
+		return 1;
+		}
+	else if (ok == -1)
+		{
+		fprintf(stderr, "Error in parse_numbers: validation error in validate_string\n");
+		return 1;
+		}
 
 	// Add numbers into the array
-	token = strtok(input, ", ");
+	token = strtok(numbers_input, ", ");
 	do
 		{
 		numbers[i] = atoi(token);
@@ -158,16 +195,31 @@ static int parse_numbers(int* numbers, char* input)
 
 // input will be modified by the function strtok.
 // In case it is wanted to reuse the string there, make a previous copy
-static int parse_target(int* target, char* input)
+static int parse_target(int* target, char* target_input)
 	{
-     char* token;
-     int count = 0;
+	char* token;
+	int ok;
+	int count = 0;
 
-     // Remove final new-line character
-     input[strcspn(input, "\n")] = 0;
-
+	// Remove final new-line character
+	target_input[strcspn(target_input, "\n")] = 0;
+     
+	// Validate
+	ok = validate_string(target_input, "^[[:space:]]*0*[1-9][0-9]{2}[[:space:]]*$");
+	if (ok == 1)
+		{
+		fprintf(stderr, "Error in parse_target: input not validated. ");
+		fprintf(stderr, "Introduce a single number\n");
+		return 1;
+		}
+	else if (ok == -1)
+		{
+		fprintf(stderr, "Error in parse_target: validation error in validate_string\n");
+		return 1;
+		}
+	
 	// Capture target number
-	token = strtok(input, " ");
+	token = strtok(target_input, " ");
 	*target = atoi(token);
 	if (strtok(NULL, " ") != NULL)
 		{
@@ -188,16 +240,13 @@ int main()
 	{
 	int numbers[NUM_COUNT], target, result;
 	SolutionStepStack steps_stack;
-	char buffer[256], regex_pattern[256];
+	char buffer[256];
 	int ok;
 
-	printf("Introduce numbers (enter to be randomly generated)\n");
-	if (fgets(buffer, sizeof(buffer), stdin) == NULL)
-		{
-		fprintf(stderr, "Read error in fgets\n");
-		return 1;
-		}
-	
+	ok = get_user_input(buffer, 
+		"Introduce numbers (enter to be randomly generated)\n");
+	if (ok != 0) return 1;
+
 	if (strcmp(buffer, "\n") == 0)
 		{
 		srand(time(NULL));
@@ -206,70 +255,25 @@ int main()
 		}
 	else
 		{
-		// Validate numbers string
-		// Generate pattern dynamically taking into account the constant NUM_COUNT
-		// Alternative regex to allow several commas (besides spaces)
-		// between numbers:
-		// ^[[:space:]]*(0*[1-9][0-9]*([[:space:]]|,)+){%d}0*[1-9][0-9]*[[:space:]]*$
-		snprintf(regex_pattern, sizeof(regex_pattern),
-			"^[[:space:]]*(0*[1-9][0-9]*([[:space:]]+|([[:space:]]*,[[:space:]]*))){%d}0*[1-9][0-9]*[[:space:]]*$",
-			NUM_COUNT - 1);
-		ok = validate_string(buffer, regex_pattern);
-		if (ok == 1)
-			{
-			fprintf(stderr, "Error: wrong numbers format. ");
-			fprintf(stderr, "Introduce %d numbers separated with spaces or commas\n",
-				NUM_COUNT);
-			return 1;
-			}
-		else if (ok == -1)
-			{
-			fprintf(stderr, "Validation error in validate_string\n");
-			return 1;
-			}
-		
-		// Parse numbers
-		// This includes checking that the numbers are between 
-		// MIN_NUMBER AND MAX_NUMBER
+		// Parse and validate numbers
 		ok = parse_numbers(numbers, buffer);
-		if (ok != 0)
-			{
-			fprintf(stderr, "Error in parse_numbers\n");
-			return 1;
-			}
+		if (ok != 0) return 1;
 		
 		// Get target number
-		printf("Introduce target: ");
-		if (fgets(buffer, sizeof(buffer), stdin) == NULL)
-			{
-			fprintf(stderr, "Read error\n");
-			return 1;
-			}
-		ok = validate_string(buffer, "^[[:space:]]*0*[1-9][0-9]{2}[[:space:]]*$");
-		if (ok != 0)
-			{
-			fprintf(stderr, "Error: wrong target format\n");
-			return 1;
-			}
-		else if (ok == -1)
-			return 1;
+		ok = get_user_input(buffer, "Introduce target: ");
+		if (ok != 0) return 1;
 
-		// Parse target number
-		// This includes checking that the target is between
-		// MIN_TARGET and MAX_TARGET
-		// PENDING: CREATE FUNCTION
+		// Parse and validate target number
 		parse_target(&target, buffer);
-		if (ok != 0)
-			return 1;
+		if (ok != 0) return 1;
 		}
 		
-	printf("Numbers: ");
+	printf("\nNumbers: ");
 	numbers_print(numbers);
 	printf("Target: %d\n\n", target);
 
 	ok = resolve_cifras(numbers, target, &steps_stack);
-	if (ok != 0)
-		return 1;
+	if (ok != 0) return 1;
 	
 	result = steps_stack_result(&steps_stack);
 	printf("Result obtained: %d", result);
