@@ -199,7 +199,6 @@ static int parse_target(int* target, char* target_input)
 	{
 	char* token;
 	int ok;
-	int count = 0;
 
 	// Remove final new-line character
 	target_input[strcspn(target_input, "\n")] = 0;
