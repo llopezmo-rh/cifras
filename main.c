@@ -76,11 +76,11 @@ static void steps_stack_print(SolutionStepStack* stack)
 		}
 	}
 
-static int get_user_input(char* user_input, const char* prompt)
+static int get_user_input(char* buffer, size_t buffer_size, const char* prompt)
 	{
 	printf("%s", prompt);
 	
-	if (fgets(user_input, sizeof(user_input), stdin) == NULL)
+	if (fgets(buffer, buffer_size, stdin) == NULL)
 		{
 		fprintf(stderr, "get_user_input: Read error in fgets\n");
 		return 1;
@@ -240,10 +240,10 @@ int main()
 	{
 	int numbers[NUM_COUNT], target, result;
 	SolutionStepStack steps_stack;
-	char buffer[256];
+	char buffer[128];
 	int ok;
 
-	ok = get_user_input(buffer, 
+	ok = get_user_input(buffer, sizeof(buffer),
 		"Introduce numbers (enter to be randomly generated)\n");
 	if (ok != 0) return 1;
 
@@ -260,7 +260,7 @@ int main()
 		if (ok != 0) return 1;
 		
 		// Get target number
-		ok = get_user_input(buffer, "Introduce target: ");
+		ok = get_user_input(buffer, sizeof(buffer), "Introduce target: ");
 		if (ok != 0) return 1;
 
 		// Parse and validate target number
