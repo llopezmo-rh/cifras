@@ -4,7 +4,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <termios.h>
 #include <time.h>
+#include <unistd.h>
 
 // Probability (percentage) that a big number shows up in a random numbers array
 #define RANDOM_BIG_NUMBER_PROBABILITY 28
@@ -235,52 +237,135 @@ static int parse_target(int* target, char* target_input)
 	return 0;
 	}
 
+static char get_char(void)
+	{
+	int ok;
+	char input_char = '\0';
+	struct termios config_backup = {0};
+	struct termios new_config = {0};
+	
+	// 1. Flush stdin.
+	// If this is not done, it might happen that a previously pressed key
+	// buffered will be the one read on step 5
+	ok = tcflush(STDIN_FILENO, TCIFLUSH);
+	if (ok != 0)
+		{
+		perror("Error in get_char: tcflush");
+		return '\0';
+		}
+
+	// 2. Backup the current terminal configuration
+	ok = tcgetattr(STDIN_FILENO, &config_backup);
+	if (ok < 0)
+		{
+		perror("Error in get_char: tcgetattr");
+		return '\0';
+		}
+
+	// 3. Create a copy to modify
+	new_config = config_backup;
+
+	// Disable canonical mode (line buffering)
+	// Input is available immediately, not after newline
+	new_config.c_lflag &= ~ICANON;
+
+	// Disable local echo
+	// The typed character won't appear on screen automatically
+	new_config.c_lflag &= ~ECHO;
+
+	// Settings for non-canonical mode:
+	new_config.c_cc[VMIN] = 1;     // Wait for at least 1 character
+	new_config.c_cc[VTIME] = 0;    // No timeout (blocking read)
+
+	// 4. Apply the new configuration immediately
+	ok = tcsetattr(STDIN_FILENO, TCSANOW, &new_config);
+	if (ok < 0)
+		{
+		perror("Error on get_char when applying new configuration");
+		return '\0';
+		}
+
+	// 5. Read the single character
+	ok = read(STDIN_FILENO, &input_char, 1);
+	if (ok < 0)
+		{
+		perror("Error on get_char: read");
+		return '\0';
+		}
+
+	// 6. CRITICAL: Restore the original terminal configuration
+	ok = tcsetattr(STDIN_FILENO, TCSANOW, &config_backup);
+	if (ok < 0)
+		{
+		perror("Error on get_char when restoring configuration backup");
+		return '\0';
+		}
+
+	return input_char;
+	}
+
 int main()
 	{
 	int numbers[NUM_COUNT], target, result;
 	SolutionStepStack steps_stack;
 	char buffer[128];
 	int ok;
+	char continue_char;
 
-	ok = get_user_input(buffer, sizeof(buffer),
-		"Introduce numbers (enter to be randomly generated)\n");
-	if (ok != 0) return 1;
+	// Disabling buffer to allow printing lines without new-line character at the end
+	setbuf(stdout, NULL);
 
-	if (strcmp(buffer, "\n") == 0)
+	do
 		{
-		srand(time(NULL));
-		generate_numbers(numbers);
-		target = random_natural(MIN_TARGET, MAX_TARGET);
-		}
-	else
-		{
-		// Parse and validate numbers
-		ok = parse_numbers(numbers, buffer);
+		ok = get_user_input(buffer, sizeof(buffer),
+			"Introduce numbers (enter to be randomly generated)\n");
+		if (ok != 0) return 1;
+	
+		if (strcmp(buffer, "\n") == 0)
+			{
+			srand(time(NULL));
+			generate_numbers(numbers);
+			target = random_natural(MIN_TARGET, MAX_TARGET);
+			}
+		else
+			{
+			// Parse and validate numbers
+			ok = parse_numbers(numbers, buffer);
+			if (ok != 0) return 1;
+			
+			// Get target number
+			ok = get_user_input(buffer, sizeof(buffer), "Introduce target: ");
+			if (ok != 0) return 1;
+	
+			// Parse and validate target number
+			parse_target(&target, buffer);
+			if (ok != 0) return 1;
+			}
+			
+		printf("\nNumbers: ");
+		numbers_print(numbers);
+		printf("Target: %d\n\n", target);
+	
+		ok = resolve_cifras(numbers, target, &steps_stack);
 		if (ok != 0) return 1;
 		
-		// Get target number
-		ok = get_user_input(buffer, sizeof(buffer), "Introduce target: ");
-		if (ok != 0) return 1;
-
-		// Parse and validate target number
-		parse_target(&target, buffer);
-		if (ok != 0) return 1;
-		}
+		result = steps_stack_result(&steps_stack);
+		printf("Result obtained: %d", result);
+		if (result == target)
+			printf(" (EXACT!)");
+		printf("\n\n");
 		
-	printf("\nNumbers: ");
-	numbers_print(numbers);
-	printf("Target: %d\n\n", target);
-
-	ok = resolve_cifras(numbers, target, &steps_stack);
-	if (ok != 0) return 1;
-	
-	result = steps_stack_result(&steps_stack);
-	printf("Result obtained: %d", result);
-	if (result == target)
-		printf(" (EXACT!)");
-	printf("\n\n");
-	
-	steps_stack_print(&steps_stack);
+		steps_stack_print(&steps_stack);
+		
+		printf("\nPress \"Q\" to exit or any other key to play again...");
+		continue_char = get_char();
+		printf("\n");
+		if (continue_char == '\0')
+			return 1;
+		else if (continue_char != 'q' && continue_char != 'Q')
+			printf("\n\n");		
+		}
+	while (continue_char != 'q' && continue_char != 'Q');
 
 	return 0;
 	}
