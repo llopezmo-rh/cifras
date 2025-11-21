@@ -206,7 +206,7 @@ static int parse_target(int* target, char* target_input)
 	target_input[strcspn(target_input, "\n")] = 0;
      
 	// Validate
-	ok = validate_string(target_input, "^[[:space:]]*0*[1-9][0-9]{2}[[:space:]]*$");
+	ok = validate_string(target_input, "^[[:space:]]*0*[1-9][0-9]*[[:space:]]*$");
 	if (ok == 1)
 		{
 		fprintf(stderr, "Error in parse_target: input not validated. ");
