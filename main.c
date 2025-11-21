@@ -230,7 +230,7 @@ static int parse_target(int* target, char* target_input)
 	if (*target < MIN_TARGET || *target > MAX_TARGET)
 		{
 		fprintf(stderr, "Error in parse_target: target %d is not between %d and %d\n",
-			target, MIN_TARGET, MAX_TARGET);
+			*target, MIN_TARGET, MAX_TARGET);
 		return -1;
 		}
 
