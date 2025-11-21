@@ -314,6 +314,9 @@ int main()
 
 	// Disabling buffer to allow printing lines without new-line character at the end
 	setbuf(stdout, NULL);
+	
+	// Initialize the rand function with a seed
+	srand(time(NULL));
 
 	do
 		{
@@ -323,7 +326,6 @@ int main()
 	
 		if (strcmp(buffer, "\n") == 0)
 			{
-			srand(time(NULL));
 			generate_numbers(numbers);
 			target = random_natural(MIN_TARGET, MAX_TARGET);
 			}
