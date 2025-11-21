@@ -340,7 +340,7 @@ int main()
 			if (ok != 0) return 1;
 	
 			// Parse and validate target number
-			parse_target(&target, buffer);
+			ok = parse_target(&target, buffer);
 			if (ok != 0) return 1;
 			}
 			
