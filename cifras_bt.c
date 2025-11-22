@@ -131,6 +131,24 @@ static void build_candidates_stack(SolutionStepStack* stack,
 	assert(steps_stack_count(stack) == 3 ||  steps_stack_count(stack) == 4);
 	}
 
+// Return true if the exact number has been already found and therefore a
+// longer solution can never be better
+static bool prunable(const SolutionStepStack* current_steps,
+	const SolutionStepStack* best_steps, int target)
+	{
+	if (steps_stack_is_empty(current_steps))
+		return false;
+	assert(steps_stack_is_empty(best_steps) == false);
+
+	if (steps_stack_result(best_steps) != target)
+		return false;
+
+	if (steps_stack_count(current_steps) < steps_stack_count(best_steps))
+		return false;
+
+	return true;
+	}
+
 static void cifras_bt(const int* numbers, int numbers_count,
 	int target,
 	const SolutionStepStack* current_steps, SolutionStepStack* best_steps) 
@@ -145,9 +163,13 @@ static void cifras_bt(const int* numbers, int numbers_count,
 	if (steps_stack_compare(current_steps, best_steps, target) == -1)
 		steps_stack_copy(best_steps, current_steps);
 
-	// Base case: only 1 number pending, therefore no more combinations are possible
+	// Base cases: 
+	// 1. Only 1 number pending, therefore no more combinations are possible
 	assert(numbers_count > 0);
 	if (numbers_count == 1)
+		return;
+	// 2. Current status allows a prune (see function "prunable" for more details)
+	if (prunable(current_steps, best_steps, target))
 		return;
 
 	// From here onwards, recursive case
