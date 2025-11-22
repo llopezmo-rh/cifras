@@ -109,7 +109,8 @@ static void build_candidates_stack(SolutionStepStack* stack,
 		step = (SolutionStep){operand1 - operand2, operand1, operand2, '-'};
 	else if (operand2 > operand1)
 		step = (SolutionStep){operand2 - operand1, operand2, operand1, '-'};
-	steps_stack_push(stack, &step);
+	if (operand1 != operand2)
+		steps_stack_push(stack, &step);
 	
 	// Multiply
 	step = (SolutionStep){operand1 * operand2, operand1, operand2, '*'};
