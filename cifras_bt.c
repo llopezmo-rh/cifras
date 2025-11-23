@@ -132,8 +132,8 @@ static void build_candidates_stack(SolutionStepStack* stack,
 	}
 
 // Return true if the exact number has been already found and therefore a
-// longer solution can never be better
-static bool prunable(const SolutionStepStack* current_steps,
+// solution with more steps can never be better
+static bool prunable_length(const SolutionStepStack* current_steps,
 	const SolutionStepStack* best_steps, int target)
 	{
 	if (steps_stack_is_empty(current_steps))
@@ -147,6 +147,52 @@ static bool prunable(const SolutionStepStack* current_steps,
 		return false;
 
 	return true;
+	}
+
+// Calculation of an additional prune.
+// True if all the following conditions are satisfied:
+// 1. best_steps is not empty.
+// 2. The highest value obtained by combining the pending numbers is smaller
+// than the target.
+// 3. The highest value obtained by combining the pending numbers is further
+// from the target than the result of best_steps.
+static bool prunable_upper_value(const int* numbers, int numbers_count,
+	int target, const SolutionStepStack* best_steps)
+	{
+	unsigned long int upper_value = 1;
+	unsigned long int upper_value_diff;
+	int i, best_diff;
+	
+	assert(numbers != NULL);
+	assert(numbers_count > 0);
+	assert(best_steps != NULL);
+	
+	// No prune if best_steps is empty
+	if (steps_stack_is_empty(best_steps))
+		return false;
+
+	for (i = 0; i < numbers_count; i++)
+		{
+		assert(numbers[i] >= 1);
+		
+		// Upper bound estimate: multiplying by 2 will never reach a value
+		// smaller than any other one combining the number 1
+		if (numbers[i] == 1)
+			upper_value *= 2;
+		else
+			upper_value *= (unsigned long int)numbers[i];
+		
+		// No prune if upper_value is larger than target
+		if (upper_value >= (unsigned long int)target)
+			return false;
+		}
+
+	assert(upper_value < (unsigned long int)target);
+	upper_value_diff = (unsigned long int)target - upper_value;
+	best_diff = abs(steps_stack_result(best_steps) - target);
+	// If upper_value_diff == best_diff, there must be no prune because the
+	// current solution may be better than the best if its steps count is smaller
+	return upper_value_diff > (unsigned long int)best_diff;
 	}
 
 static void cifras_bt(const int* numbers, int numbers_count,
@@ -168,8 +214,14 @@ static void cifras_bt(const int* numbers, int numbers_count,
 	assert(numbers_count > 0);
 	if (numbers_count == 1)
 		return;
-	// 2. Current status allows a prune (see function "prunable" for more details)
-	if (prunable(current_steps, best_steps, target))
+	// 2. Prune if exact has been already found and the current steps count
+	// is higher than the exact solution
+	if (prunable_length(current_steps, best_steps, target))
+		return;
+	// 3. Prune is the upper value obtained by combining all the pending
+	// numbers is smaller than the target AND is further from the target than
+	// the result of best_steps
+	if (prunable_upper_value(numbers, numbers_count, target, best_steps))
 		return;
 
 	// From here onwards, recursive case
