@@ -54,12 +54,14 @@ static int steps_stack_compare(const SolutionStepStack* stack1,
 	else if (diff2 < diff1)
 		return 1;
 	else if (diff1 == diff2)
+		{
 		if (steps_stack_count(stack1) < steps_stack_count(stack2))
 			return -1;
 		else if (steps_stack_count(stack2) < steps_stack_count(stack1))
 			return 1;
 		else if (steps_stack_count(stack1) == steps_stack_count(stack2))
 			return 0;
+		}
 	
 	// The function should never reach this point
 	assert(false);
@@ -225,9 +227,9 @@ static void cifras_bt(const int* numbers, int numbers_count,
 		return;
 
 	// From here onwards, recursive case
-	for (int i = 0; i < numbers_count; i++) 
+	for (i = 0; i < numbers_count; i++) 
 		{
-		for (int j = i + 1; j < numbers_count; j++)
+		for (j = i + 1; j < numbers_count; j++)
 			{
 			// Stack candidate steps
 			// Operands: numbers[i] and numbers[j]
@@ -262,7 +264,6 @@ static void cifras_bt(const int* numbers, int numbers_count,
 // Wrapper
 void resolve_cifras(const int* numbers, int target, SolutionStepStack* best_steps)
 	{
-	int ok;
 	SolutionStepStack current_steps;
 	
 	assert(numbers != NULL);
