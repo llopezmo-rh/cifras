@@ -4,8 +4,9 @@
 CLI application which resolves the game "cifras" ("figures")
 
 ## Compilation
+Many options can be used, but the ones below may be the most optimal:
 ~~~
-gcc cifras_bt.c main.c -o cifras
+gcc -O3 -march=native -flto cifras_bt.h cifras_bt.c main.c -o cifras
 ~~~
 
 ## Output example
