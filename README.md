@@ -22,4 +22,6 @@ Result obtained: 988 (EXACT!)
 500 - 6 = 494
 494 * 50 = 24700
 24700 / 25 = 988
+
+Press "Q" to exit or any other key to play again...
 ~~~
