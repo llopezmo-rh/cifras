@@ -1,0 +1,9 @@
+# Ignore object files
+*.o
+
+# Ignore binary file, whose name is configured in Makefile
+cifras
+
+# Ignore temporary or system files
+.DS_Store
+*~
