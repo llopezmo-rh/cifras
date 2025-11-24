@@ -378,8 +378,7 @@ static void ask_user_to_continue(char exit_char)
 		printf("\n\n");
 	}
 // steps_stack is not const because it is called by steps_stack_print
-static void print_result(const int* numbers, int target,
-	SolutionStepStack* steps_stack)
+static void print_result(int target, SolutionStepStack* steps_stack)
 	{
 	int result = steps_stack_result(steps_stack);
 	printf("Result obtained: %d", result);
@@ -391,10 +390,9 @@ static void print_result(const int* numbers, int target,
 
 int main()
 	{
-	int numbers[NUM_COUNT], target, result;
+	int numbers[NUM_COUNT], target;
 	SolutionStepStack steps_stack;
 	int ok;
-	char continue_char;
 
 	// Disabling buffer to allow printing lines without new-line character at the end
 	setbuf(stdout, NULL);
@@ -417,7 +415,7 @@ int main()
 		resolve_cifras(numbers, target, &steps_stack);
 		
 		// Print result
-		print_result(numbers, target, &steps_stack);
+		print_result(target, &steps_stack);
 		
 		// Ask user about playing again
 		ask_user_to_continue(EXIT_CHAR);
