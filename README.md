@@ -4,10 +4,15 @@
 CLI application which resolves the game "cifras" ("figures")
 
 ## Compilation
-Many options can be used, but the ones below may be the most optimal:
 ~~~
-gcc -O3 -march=native -flto cifras_bt.h cifras_bt.c main.c -o cifras
+$ make
+Compiling main.c...
+gcc -O3 -march=native -flto -Wall -Wextra -c main.c -o main.o
+Linking cifras...
+gcc main.o cifras_bt.o -o cifras -flto
+Compilation complete!
 ~~~
+Edit `Makefile` to customize the compilation options.
 
 ## Output example
 ~~~
