@@ -66,6 +66,7 @@ static void numbers_print(int* numbers)
 	printf("\n");
 	}
 
+// stack is not const because there are push and pop operations
 static void steps_stack_print(SolutionStepStack* stack)
 	{
 	SolutionStep step;
@@ -159,7 +160,7 @@ static int parse_numbers(int* numbers, char* numbers_input)
 	else if (ok == -1)
 		{
 		fprintf(stderr, "Error in parse_numbers: validation error in validate_string\n");
-		return 1;
+		return -1;
 		}
 
 	// Add numbers into the array
@@ -172,14 +173,14 @@ static int parse_numbers(int* numbers, char* numbers_input)
 			fprintf(stderr, "Error in parse_numbers: ");
 			fprintf(stderr, "Number %d not correctly parsed or not strictly positive\n",
 				numbers[i]);
-			return -1;
+			return 1;
 			}
 		if (numbers[i] < MIN_NUMBER || numbers[i] > MAX_NUMBER)
 			{
 			fprintf(stderr, "Error in parse_numbers: ");
 			fprintf(stderr, "number %d is not between %d and %d\n",
 				numbers[i], MIN_NUMBER, MAX_NUMBER);
-			return -1;
+			return 1;
 			}
 		token = strtok(NULL, " ,");
 		i++;
@@ -210,13 +211,13 @@ static int parse_target(int* target, char* target_input)
 	if (ok == 1)
 		{
 		fprintf(stderr, "Error in parse_target: input not validated. ");
-		fprintf(stderr, "Introduce a single number\n");
+		fprintf(stderr, "Introduce a single positive number\n");
 		return 1;
 		}
 	else if (ok == -1)
 		{
 		fprintf(stderr, "Error in parse_target: validation error in validate_string\n");
-		return 1;
+		return -1;
 		}
 	
 	// Capture target number
@@ -231,7 +232,7 @@ static int parse_target(int* target, char* target_input)
 		{
 		fprintf(stderr, "Error in parse_target: target %d is not between %d and %d\n",
 			*target, MIN_TARGET, MAX_TARGET);
-		return -1;
+		return 1;
 		}
 
 	return 0;
@@ -304,11 +305,72 @@ static char get_char(void)
 	return input_char;
 	}
 
+static int get_user_data(int* numbers, int* target)
+	{
+	char buffer[128];
+	int ok;
+	
+	// Get numbers
+	do
+		{
+		ok = get_user_input(buffer, sizeof(buffer), 
+			"Introduce numbers (enter to be randomly generated)\n");
+		if (ok != 0) return 1;
+		if (strcmp(buffer, "\n") == 0)
+			{
+			generate_numbers(numbers);
+			*target = random_natural(MIN_TARGET, MAX_TARGET);
+			return 0;
+			}
+		ok = parse_numbers(numbers, buffer);
+		// If the return value is -1, it means that there was a processing
+		// error. The return value for wrong user input is 1
+		if (ok == -1) return 1;
+		}
+	while (ok != 0);
+
+	// Get target
+	do	
+		{
+		ok = get_user_input(buffer, sizeof(buffer), "Introduce target: ");
+		if (ok != 0) return 1;
+		ok = parse_target(target, buffer);
+		// If the return value is -1, it means that there was a processing
+		// error. The return value for wrong user input is 1
+		if (ok == -1) return 1;
+		}
+	while (ok != 0);
+
+	return 0;
+	}
+
+static char get_user_continue_key(void)
+	{
+	char continue_char;
+	printf("\nPress \"Q\" to exit or any other key to play again...");
+	continue_char = get_char();
+	printf("\n");
+	if (continue_char != 'q' && continue_char != 'Q')
+		printf("\n\n");
+	return continue_char;
+	}	
+
+// steps_stack is not const because it is called by steps_stack_print
+static void print_result(const int* numbers, int target,
+	SolutionStepStack* steps_stack)
+	{
+	int result = steps_stack_result(steps_stack);
+	printf("Result obtained: %d", result);
+	if (result == target)
+		printf(" (EXACT!)");
+	printf("\n\n");
+	steps_stack_print(steps_stack);
+	}
+
 int main()
 	{
 	int numbers[NUM_COUNT], target, result;
 	SolutionStepStack steps_stack;
-	char buffer[128];
 	int ok;
 	char continue_char;
 
@@ -317,54 +379,28 @@ int main()
 	
 	// Initialize the rand function with a seed
 	srand(time(NULL));
-
+	
 	do
 		{
-		ok = get_user_input(buffer, sizeof(buffer),
-			"Introduce numbers (enter to be randomly generated)\n");
+		// Fill out numbers and target according to the user's input
+		ok = get_user_data(numbers, &target);
 		if (ok != 0) return 1;
 	
-		if (strcmp(buffer, "\n") == 0)
-			{
-			generate_numbers(numbers);
-			target = random_natural(MIN_TARGET, MAX_TARGET);
-			}
-		else
-			{
-			// Parse and validate numbers
-			ok = parse_numbers(numbers, buffer);
-			if (ok != 0) return 1;
-			
-			// Get target number
-			ok = get_user_input(buffer, sizeof(buffer), "Introduce target: ");
-			if (ok != 0) return 1;
-	
-			// Parse and validate target number
-			ok = parse_target(&target, buffer);
-			if (ok != 0) return 1;
-			}
-			
+		// Print game
 		printf("\nNumbers: ");
 		numbers_print(numbers);
 		printf("Target: %d\n\n", target);
 	
+		// Resolve game
 		resolve_cifras(numbers, target, &steps_stack);
 		
-		result = steps_stack_result(&steps_stack);
-		printf("Result obtained: %d", result);
-		if (result == target)
-			printf(" (EXACT!)");
-		printf("\n\n");
+		// Print result
+		print_result(numbers, target, &steps_stack);
 		
-		steps_stack_print(&steps_stack);
-		
-		printf("\nPress \"Q\" to exit or any other key to play again...");
-		continue_char = get_char();
-		printf("\n");
+		// Ask user about playing again
+		continue_char = get_user_continue_key();
 		if (continue_char == '\0')
 			return 1;
-		else if (continue_char != 'q' && continue_char != 'Q')
-			printf("\n\n");		
 		}
 	while (continue_char != 'q' && continue_char != 'Q');
 
