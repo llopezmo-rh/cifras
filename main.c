@@ -1,5 +1,6 @@
 #include "cifras_bt.h"
 
+#include <ctype.h>
 #include <regex.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,6 +9,7 @@
 #include <time.h>
 #include <unistd.h>
 
+#define EXIT_CHAR 'q'
 // Probability (percentage) that a big number shows up in a random numbers array
 #define RANDOM_BIG_NUMBER_PROBABILITY 28
 #define MIN_NUMBER 1
@@ -344,17 +346,37 @@ static int get_user_data(int* numbers, int* target)
 	return 0;
 	}
 
-static char get_user_continue_key(void)
+static void ask_user_to_continue(char exit_char)
 	{
-	char continue_char;
-	printf("\nPress \"Q\" to exit or any other key to play again...");
-	continue_char = get_char();
-	printf("\n");
-	if (continue_char != 'q' && continue_char != 'Q')
-		printf("\n\n");
-	return continue_char;
-	}	
+	char lower_exit_char, upper_exit_char, input_char;
+	
+	if (islower(exit_char))
+		{
+		lower_exit_char = exit_char;
+		upper_exit_char = toupper(exit_char);
+		}
+	else if (isupper(exit_char))
+		{
+		lower_exit_char = tolower(exit_char);
+		upper_exit_char = exit_char;
+		}
+	else
+		{
+		upper_exit_char = exit_char;
+		lower_exit_char = exit_char;
+		}
 
+	printf("\nPress \"%c\" to exit or any other key to play again...",
+		upper_exit_char);
+	input_char = get_char();
+	printf("\n");
+	if (input_char == '\0')
+		exit(EXIT_FAILURE);
+	else if (input_char == upper_exit_char || input_char == lower_exit_char)
+		exit(EXIT_SUCCESS);
+	else
+		printf("\n\n");
+	}
 // steps_stack is not const because it is called by steps_stack_print
 static void print_result(const int* numbers, int target,
 	SolutionStepStack* steps_stack)
@@ -380,7 +402,7 @@ int main()
 	// Initialize the rand function with a seed
 	srand(time(NULL));
 	
-	do
+	for (;;)
 		{
 		// Fill out numbers and target according to the user's input
 		ok = get_user_data(numbers, &target);
@@ -398,11 +420,8 @@ int main()
 		print_result(numbers, target, &steps_stack);
 		
 		// Ask user about playing again
-		continue_char = get_user_continue_key();
-		if (continue_char == '\0')
-			return 1;
+		ask_user_to_continue(EXIT_CHAR);
 		}
-	while (continue_char != 'q' && continue_char != 'Q');
 
 	return 0;
 	}
