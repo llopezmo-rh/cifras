@@ -135,7 +135,7 @@ static void build_candidates_stack(SolutionStepStack* stack,
 
 // Return true if the exact number has been already found and therefore a
 // solution with more steps can never be better
-static bool prunable_length(const SolutionStepStack* current_steps,
+static inline bool prunable_length(const SolutionStepStack* current_steps,
 	const SolutionStepStack* best_steps, int target)
 	{
 	if (steps_stack_is_empty(current_steps))
