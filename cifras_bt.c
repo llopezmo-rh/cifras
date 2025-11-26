@@ -36,7 +36,7 @@ void steps_stack_copy(SolutionStepStack* target, const SolutionStepStack* source
 static int steps_stack_compare(const SolutionStepStack* stack1,
 	const SolutionStepStack* stack2, int target)
 	{
-	int diff1, diff2;
+	long int diff1, diff2;
 
 	// If both are empty, return 0.
 	// If only one is empty, the other one is considered better
@@ -47,8 +47,8 @@ static int steps_stack_compare(const SolutionStepStack* stack1,
 	else if (steps_stack_is_empty(stack2))
 		return -1;
 	
-	diff1 = abs(steps_stack_result(stack1) - target);
-	diff2 = abs(steps_stack_result(stack2) - target);
+	diff1 = labs(steps_stack_result(stack1) - (long int)target);
+	diff2 = labs(steps_stack_result(stack2) - (long int)target);
 	if (diff1 < diff2)
 		return -1;
 	else if (diff2 < diff1)
@@ -70,8 +70,8 @@ static int steps_stack_compare(const SolutionStepStack* stack1,
 // 1. Put new in new_array[0].
 // 2. Copy the elements of former_array into new array starting from
 // new_array[1] skiping former_array[old_pos1] and former_array[old_pos2]
-static void build_next_numbers(int* new_array, const int* former_array,
-	int old_pos1, int old_pos2, int new)
+static void build_next_numbers(long int* new_array, const long int* former_array,
+	int old_pos1, int old_pos2, long int new)
 	{
 	int i, j;
 	
@@ -92,7 +92,7 @@ static void build_next_numbers(int* new_array, const int* former_array,
 	}
 	
 static void build_candidates_stack(SolutionStepStack* stack,
-	int operand1, int operand2)
+	long int operand1, long int operand2)
 	{
 	SolutionStep step;
 	
@@ -142,7 +142,7 @@ static inline bool prunable_length(const SolutionStepStack* current_steps,
 		return false;
 	assert(steps_stack_is_empty(best_steps) == false);
 
-	if (steps_stack_result(best_steps) != target)
+	if (steps_stack_result(best_steps) != (long int)target)
 		return false;
 
 	if (steps_stack_count(current_steps) < steps_stack_count(best_steps))
@@ -158,12 +158,13 @@ static inline bool prunable_length(const SolutionStepStack* current_steps,
 // than the target.
 // 3. The highest value obtained by combining the pending numbers is further
 // from the target than the result of best_steps.
-static bool prunable_upper_value(const int* numbers, int numbers_count,
+static bool prunable_upper_value(const long int* numbers, int numbers_count,
 	int target, const SolutionStepStack* best_steps)
 	{
-	unsigned long int upper_value = 1;
-	unsigned long int upper_value_diff;
-	int i, best_diff;
+	long int upper_value = 1;
+	long int upper_value_diff;
+	long int best_diff;
+	int i;
 	
 	assert(numbers != NULL);
 	assert(numbers_count > 0);
@@ -182,29 +183,29 @@ static bool prunable_upper_value(const int* numbers, int numbers_count,
 		if (numbers[i] == 1)
 			upper_value *= 2;
 		else
-			upper_value *= (unsigned long int)numbers[i];
+			upper_value *= numbers[i];
 		
 		// No prune if upper_value is larger than target
-		if (upper_value >= (unsigned long int)target)
+		if (upper_value >= (long int)target)
 			return false;
 		}
 
-	assert(upper_value < (unsigned long int)target);
-	upper_value_diff = (unsigned long int)target - upper_value;
-	best_diff = abs(steps_stack_result(best_steps) - target);
+	assert(upper_value < (long int)target);
+	upper_value_diff = (long int)target - upper_value;
+	best_diff = labs(steps_stack_result(best_steps) - (long int)target);
 	// If upper_value_diff == best_diff, there must be no prune because the
 	// current solution may be better than the best if its steps count is smaller
-	return upper_value_diff > (unsigned long int)best_diff;
+	return upper_value_diff > best_diff;
 	}
 
-static void cifras_bt(const int* numbers, int numbers_count,
+static void cifras_bt(const long int* numbers, int numbers_count,
 	int target,
 	const SolutionStepStack* current_steps, SolutionStepStack* best_steps) 
 	{	
 	int i, j;
 	SolutionStep candidate;
 	SolutionStepStack candidate_steps, next_steps;
-	int next_numbers[NUM_COUNT];
+	long int next_numbers[NUM_COUNT];
 	
 	// If current_steps reaches a better result than best_steps, then
 	// mirror current_steps into best_steps
@@ -262,7 +263,7 @@ static void cifras_bt(const int* numbers, int numbers_count,
 	}
 
 // Wrapper
-void resolve_cifras(const int* numbers, int target, SolutionStepStack* best_steps)
+void resolve_cifras(const long int* numbers, int target, SolutionStepStack* best_steps)
 	{
 	SolutionStepStack current_steps;
 	

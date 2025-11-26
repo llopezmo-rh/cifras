@@ -14,11 +14,14 @@
 	#define MAX_SOLUTION_STEPS 4
 #endif
 
+// Type long int used because, for combinations of numbers relatively high,
+// INT_MAX is overstepped. For example this one:
+// 100, 100, 100, 25, 10, 9
 typedef struct 
 	{
-	int result;
-	int a;
-	int b;
+	long int result;
+	long int a;
+	long int b;
 	char op; // '+', '-', '*', '/'
 	} SolutionStep;
 
@@ -63,7 +66,7 @@ static inline int steps_stack_count(const SolutionStepStack* stack)
 	assert(stack->count <= MAX_SOLUTION_STEPS);
 	return stack->count;
 	}
-static inline int steps_stack_result(const SolutionStepStack* stack)
+static inline long int steps_stack_result(const SolutionStepStack* stack)
 	{
 	assert(stack != NULL);
 	assert(stack->count > 0);
@@ -71,6 +74,6 @@ static inline int steps_stack_result(const SolutionStepStack* stack)
 	return stack->steps[stack->count - 1].result;
 	}
 void steps_stack_copy(SolutionStepStack* target, const SolutionStepStack* source);
-void resolve_cifras(const int* numbers, int target, SolutionStepStack* best_steps);
+void resolve_cifras(const long int* numbers, int target, SolutionStepStack* best_steps);
 
 #endif

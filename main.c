@@ -16,7 +16,7 @@
 #define MAX_NUMBER 100
 #define MIN_TARGET 100
 #define MAX_TARGET 999
-static const int RANDOM_BIG_NUMBERS[] = {10, 25, 50, 100};
+static const long int RANDOM_BIG_NUMBERS[] = {10, 25, 50, 100};
 
 static const size_t RANDOM_BIG_NUMBERS_COUNT = sizeof(RANDOM_BIG_NUMBERS) / sizeof(RANDOM_BIG_NUMBERS[0]);
 
@@ -38,7 +38,7 @@ static int random_natural(int min_val, int max_val)
 	return (rand() % range_length) + min_val;
 	}
 
-static void generate_numbers(int* numbers)
+static void generate_numbers(long int* numbers)
 	{
 	int probability, i, big_number_pos;
 	for (i = 0; i < NUM_COUNT; i++)
@@ -50,17 +50,17 @@ static void generate_numbers(int* numbers)
 			numbers[i] = RANDOM_BIG_NUMBERS[big_number_pos];
 			}
 		else
-			numbers[i] = random_natural(1, 9);
+			numbers[i] = (long int)random_natural(1, 9);
 		}
 	}
 
-static void numbers_print(int* numbers)
+static void numbers_print(long int* numbers)
 	{
 	int i;
 	//printf("{");
 	for (i = 0; i < NUM_COUNT; i++)
 		{
-		printf("%d", numbers[i]);
+		printf("%ld", numbers[i]);
 		if (i < NUM_COUNT - 1)
 			printf(", ");
 		}
@@ -76,7 +76,7 @@ static void steps_stack_print(SolutionStepStack* stack)
 		{
 		steps_stack_pop(stack, &step);
 		steps_stack_print(stack);
-		printf("%d %c %d = %d\n", step.a, step.op, step.b, step.result);
+		printf("%ld %c %ld = %ld\n", step.a, step.op, step.b, step.result);
 		steps_stack_push(stack, &step);
 		}
 	}
@@ -133,7 +133,7 @@ static int validate_string(const char* input, const char* regex_pattern)
 	
 // numbers_input will be modified by the function strtok.
 // In case it is wanted to reuse the string there, make a previous copy
-static int parse_numbers(int* numbers, char* numbers_input)
+static int parse_numbers(long int* numbers, char* numbers_input)
 	{
 	char* token;
 	int ok;
@@ -169,18 +169,18 @@ static int parse_numbers(int* numbers, char* numbers_input)
 	token = strtok(numbers_input, ", ");
 	do
 		{
-		numbers[i] = atoi(token);
+		numbers[i] = atol(token);
 		if (numbers[i] <= 0)
 			{
 			fprintf(stderr, "Error in parse_numbers: ");
-			fprintf(stderr, "Number %d not correctly parsed or not strictly positive\n",
+			fprintf(stderr, "Number %ld not correctly parsed or not strictly positive\n",
 				numbers[i]);
 			return 1;
 			}
 		if (numbers[i] < MIN_NUMBER || numbers[i] > MAX_NUMBER)
 			{
 			fprintf(stderr, "Error in parse_numbers: ");
-			fprintf(stderr, "number %d is not between %d and %d\n",
+			fprintf(stderr, "number %ld is not between %d and %d\n",
 				numbers[i], MIN_NUMBER, MAX_NUMBER);
 			return 1;
 			}
@@ -307,7 +307,7 @@ static char get_char(void)
 	return input_char;
 	}
 
-static int get_user_data(int* numbers, int* target)
+static int get_user_data(long int* numbers, int* target)
 	{
 	char buffer[128];
 	int ok;
@@ -380,9 +380,9 @@ static void ask_user_to_continue(char exit_char)
 // steps_stack is not const because it is called by steps_stack_print
 static void print_result(int target, SolutionStepStack* steps_stack)
 	{
-	int result = steps_stack_result(steps_stack);
-	printf("Result obtained: %d", result);
-	if (result == target)
+	long int result = steps_stack_result(steps_stack);
+	printf("Result obtained: %ld", result);
+	if (result == (long int)target)
 		printf(" (EXACT!)");
 	printf("\n\n");
 	steps_stack_print(steps_stack);
@@ -390,7 +390,8 @@ static void print_result(int target, SolutionStepStack* steps_stack)
 
 int main()
 	{
-	int numbers[NUM_COUNT], target;
+	long int numbers[NUM_COUNT];
+	int target;
 	SolutionStepStack steps_stack;
 	int ok;
 
