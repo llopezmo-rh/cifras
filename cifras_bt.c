@@ -97,8 +97,7 @@ static void build_candidates_stack(SolutionStepStack* stack,
 	SolutionStep step;
 	
 	assert(stack != NULL);
-	assert(operand1 > 0);
-	assert(operand2 > 0);
+	assert(operand1 > 0 && operand2 > 0);
 		
 	steps_stack_init(stack);
 	
@@ -107,30 +106,51 @@ static void build_candidates_stack(SolutionStepStack* stack,
 	steps_stack_push(stack, &step);
 	
 	// Substract (no action if operand1 == operand2)
-	if (operand1 > operand2)
-		step = (SolutionStep){operand1 - operand2, operand1, operand2, '-'};
-	else if (operand2 > operand1)
-		step = (SolutionStep){operand2 - operand1, operand2, operand1, '-'};
 	if (operand1 != operand2)
+		{
+		if (operand1 > operand2)
+			step = (SolutionStep){operand1 - operand2, operand1, operand2, '-'};
+		else if (operand2 > operand1)
+			step = (SolutionStep){operand2 - operand1, operand2, operand1, '-'};
 		steps_stack_push(stack, &step);
+		}
+
+	// Prune if any of the operands is 1. Either multiplying or dividing by 1
+	// introduces a useless operation.
+	//
+	// A recursive branch with a useless operation will never be the best
+	// because there will be always, at least, one branch with the same result
+	// but shorter (with less operations).
+	if (operand1 == 1 || operand2 == 1)
+		return;
 	
 	// Multiply
 	step = (SolutionStep){operand1 * operand2, operand1, operand2, '*'};
 	steps_stack_push(stack, &step);
 	
 	// Divide
-	if (operand2 != 0 && operand1 % operand2 == 0)
+	//
+	// Optimization maximized. It is the most CPU-expensive operation.
+	//
+	// If dividend == divisor, set the result directly to 1 instead of
+	// executing the division in order to save CPU cycles
+	if (operand1 == operand2)
+		{
+		step = (SolutionStep){1, operand1, operand2, '/'};
+		steps_stack_push(stack, &step);
+		}
+	// The operands are compared before the modulo operation. That saves
+	// one modulo operation (1 vs 2) if operand1 != operand2
+	else if (operand1 > operand2 && operand1 % operand2 == 0)
 		{
 		step = (SolutionStep){operand1 / operand2, operand1, operand2, '/'};
 		steps_stack_push(stack, &step);
 		}
-	else if (operand1 != 0 && operand2 % operand1 == 0)
+	else if (operand2 > operand1 && operand2 % operand1 == 0)
 		{
 		step = (SolutionStep){operand2 / operand1, operand2, operand1, '/'};
 		steps_stack_push(stack, &step);
 		}
-	
-	assert(steps_stack_count(stack) == 3 ||  steps_stack_count(stack) == 4);
 	}
 
 // Return true if the exact number has been already found and therefore a
