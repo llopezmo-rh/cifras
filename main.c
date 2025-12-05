@@ -384,6 +384,8 @@ static void print_result(int target, SolutionStepStack* steps_stack)
 	printf("Result obtained: %ld", result);
 	if (result == (long int)target)
 		printf(" (EXACT!)");
+	else
+		printf(" (%+ld)", result - (long int)target);
 	printf("\n\n");
 	steps_stack_print(steps_stack);
 	}
